@@ -1,0 +1,22 @@
+CHECK POINT 3 — MICROSERVICES AND WEB ENGINEERING
+
+Repositório GitHub:
+https://github.com/Lucas-RA/CP04_MICROSERVICE
+
+Imagem pública no Docker Hub:
+https://hub.docker.com/r/270506lu/cp-microservice
+
+Aplicação no Azure Container Apps:
+https://api-cp04-270506lu.grayground-9a5a744a.canadacentral.azurecontainerapps.io/
+
+Swagger:
+https://api-cp04-270506lu.grayground-9a5a744a.canadacentral.azurecontainerapps.io/swagger-ui/index.html
+
+Azure SQL Server:
+sql-cp04-270506lu.database.windows.net
+
+Região:
+Canada Central
+
+Integrante:
+NOME COMPLETO — RM555377

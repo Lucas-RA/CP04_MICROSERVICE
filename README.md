@@ -5,11 +5,11 @@ API REST de **Finanças** e **Copa do Mundo**, preparada para o Check Point 3 de
 ## Repositório e entrega
 
 - GitHub: [Lucas-RA/CP04_MICROSERVICE](https://github.com/Lucas-RA/CP04_MICROSERVICE)
-- Docker Hub: preencher após a primeira execução bem-sucedida do workflow
-- Azure: preencher após o deploy
-- Swagger: a raiz da aplicação (`/`)
+- Docker Hub: [270506lu/cp-microservice](https://hub.docker.com/r/270506lu/cp-microservice)
+- Azure: [API no Azure Container Apps](https://api-cp04-270506lu.grayground-9a5a744a.canadacentral.azurecontainerapps.io/)
+- Swagger: [Swagger UI](https://api-cp04-270506lu.grayground-9a5a744a.canadacentral.azurecontainerapps.io/swagger-ui/index.html)
 
-O roteiro completo para publicar está em [DEPLOY_AZURE.md](DEPLOY_AZURE.md). O arquivo final a preencher para a prova está em [outputs/ENTREGA_CP3.txt](outputs/ENTREGA_CP3.txt).
+O roteiro completo para publicar está em [DEPLOY_AZURE.md](DEPLOY_AZURE.md). O arquivo final exigido pela prova está em [ENTREGA_CP3.txt](ENTREGA_CP3.txt).
 
 ## Tecnologias
 
@@ -30,7 +30,7 @@ As entidades usam IDs `BIGINT IDENTITY`, e os contratos HTTP usam DTOs separados
 
 ## Endpoints
 
-Swagger UI local: [http://localhost:8080/](http://localhost:8080/)<br>
+Swagger UI local: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)<br>
 OpenAPI JSON local: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 | Domínio | Operações | Rota-base |

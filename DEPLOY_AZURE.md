@@ -243,7 +243,7 @@ Isso cria uma revisão rastreável e evita que o Azure reutilize uma imagem anti
 
 ## 10. Finalizar a entrega
 
-Preencha `outputs/ENTREGA_CP3.txt` com:
+Crie e preencha um arquivo `.txt` para a entrega com:
 
 1. URL do GitHub;
 2. URL pública da imagem no Docker Hub;
