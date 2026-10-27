@@ -1,7 +1,15 @@
 target/
 .git
+.github
+.ai
+.idea
+.vscode
 .gitignore
 Dockerfile
 docker-compose.yml
+.env
+.env.*
+database/
+outputs/
 *.md
 *.log

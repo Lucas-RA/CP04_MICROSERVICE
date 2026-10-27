@@ -1,0 +1,17 @@
+CHECK POINT 3 — MICROSERVICES AND WEB ENGINEERING
+
+Repositório GitHub:
+https://github.com/Lucas-RA/CP04_MICROSERVICE
+
+Imagem pública no Docker Hub:
+https://hub.docker.com/r/SEU-USUARIO/cp-microservice
+
+Aplicação no Azure Container Apps:
+https://SEU-CONTAINER-APP.REGIAO.azurecontainerapps.io
+
+Swagger:
+https://SEU-CONTAINER-APP.REGIAO.azurecontainerapps.io/
+
+Integrantes:
+- NOME COMPLETO — RM000000
+

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import org.springframework.web.bind.annotation.RestController;
 
-
 import br.com.fiap.cp01_api01.service.FutebolService;
+import jakarta.validation.Valid;
 import br.com.fiap.cp01_api01.dto.FutebolCreateRequest;
 import br.com.fiap.cp01_api01.dto.FutebolMapper;
 import br.com.fiap.cp01_api01.dto.FutebolResponse;
@@ -23,7 +23,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping ("/copa")
+@RequestMapping("/api/v1/copa")
 public class FutebolController {
 
     @Autowired
@@ -33,7 +33,7 @@ public class FutebolController {
     private FutebolMapper futebolMapper;
 
     @PostMapping
-    public ResponseEntity<FutebolResponse> create(@RequestBody FutebolCreateRequest dtoRequest) {
+    public ResponseEntity<FutebolResponse> create(@Valid @RequestBody FutebolCreateRequest dtoRequest) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(futebolMapper.toDTO(service.createOrUpdate(futebolMapper.toModel(dtoRequest))));
     }
@@ -57,7 +57,8 @@ public class FutebolController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<FutebolResponse> update(@PathVariable Long id, @RequestBody FutebolUpdateRequest dtoRequest) {
+    public ResponseEntity<FutebolResponse> update(@PathVariable Long id,
+            @Valid @RequestBody FutebolUpdateRequest dtoRequest) {
         if (service.findById(id).isPresent()) {
             Futebol futebol = futebolMapper.toModel(id, dtoRequest);
             return ResponseEntity.ok(futebolMapper.toDTO(service.createOrUpdate(futebol)));

@@ -11,9 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 import br.com.fiap.cp01_api01.service.FinancaService;
-
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import br.com.fiap.cp01_api01.dto.FinancaCreateRequest;
@@ -25,7 +24,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/financas")
+@RequestMapping("/api/v1/financas")
 public class FinancasController {
 
     @Autowired
@@ -35,7 +34,7 @@ public class FinancasController {
     private FinancaMapper financaMapper;
 
     @PostMapping
-    public ResponseEntity<FinancaResponse> create(@RequestBody FinancaCreateRequest dtoRequest) {
+    public ResponseEntity<FinancaResponse> create(@Valid @RequestBody FinancaCreateRequest dtoRequest) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(financaMapper.toDTO(service.createOrUpdate(financaMapper.toModel(dtoRequest))));
     }
@@ -58,7 +57,8 @@ public class FinancasController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<FinancaResponse> update(@PathVariable Long id, @RequestBody FinancaUpdateRequest dtoRequest) {
+    public ResponseEntity<FinancaResponse> update(@PathVariable Long id,
+            @Valid @RequestBody FinancaUpdateRequest dtoRequest) {
 
         if (service.findById(id).isPresent()) {
             Financa financa = financaMapper.toModel(id, dtoRequest);

@@ -1,211 +1,44 @@
-# Checkpoint 2 — API REST com Spring Boot e SQL Server
+# Check Point 3 — API REST em Azure
 
-API REST desenvolvida para o **Check Point 2 do 2º semestre de 2026** da disciplina Microservices and Web Engineering.
+API REST de **Finanças** e **Copa do Mundo**, preparada para o Check Point 3 de Microservices and Web Engineering. O projeto oferece CRUD completo, persistência em SQL Server, documentação OpenAPI, imagem Docker, Continuous Delivery para o Docker Hub e configuração para Azure Container Apps.
 
-O projeto realiza operações CRUD em dois domínios:
+## Repositório e entrega
 
-- **Finanças**: gerenciamento de títulos financeiros;
-- **Copa do Mundo**: gerenciamento de edições da competição.
+- GitHub: [Lucas-RA/CP04_MICROSERVICE](https://github.com/Lucas-RA/CP04_MICROSERVICE)
+- Docker Hub: preencher após a primeira execução bem-sucedida do workflow
+- Azure: preencher após o deploy
+- Swagger: a raiz da aplicação (`/`)
 
-Os dados são persistidos em um SQL Server local executado com Docker.
+O roteiro completo para publicar está em [DEPLOY_AZURE.md](DEPLOY_AZURE.md). O arquivo final a preencher para a prova está em [outputs/ENTREGA_CP3.txt](outputs/ENTREGA_CP3.txt).
 
 ## Tecnologias
 
-- Java 17
-- Spring Boot 4.0.3
-- Spring MVC
-- Spring Data JPA e Hibernate
-- SQL Server
-- Maven Wrapper
-- Docker
-- Swagger/OpenAPI
-- Lombok
-- ModelMapper
-- Bean Validation
-
-## Repositório
-
-- GitHub: [Lucas-RA/CP04_MICROSERVICE](https://github.com/Lucas-RA/CP04_MICROSERVICE)
+- Java 17 e Spring Boot 4.0.3
+- Spring MVC, Spring Data JPA, Hibernate e Bean Validation
+- SQL Server em desenvolvimento e Azure SQL em produção
+- Swagger/OpenAPI com Springdoc
+- Maven Wrapper, Docker e GitHub Actions
+- H2 apenas nos testes automatizados
 
 ## Arquitetura
 
 ```text
-Cliente HTTP
-    ↓
-Controller
-    ↓
-DTO ↔ Mapper
-    ↓
-Service
-    ↓
-Repository
-    ↓
-Entity JPA ↔ SQL Server
+Cliente HTTP → Controller → DTO/Mapper → Service → Repository → SQL Server
 ```
 
-A aplicação possui CRUD completo, IDs gerados pelo banco e separação entre contrato HTTP, regra de negócio e persistência.
-
-## Pré-requisitos
-
-- Java 17 ou superior;
-- Docker instalado e em execução;
-- portas `1433` e `8080` disponíveis;
-- DBeaver opcional para inspecionar o banco.
-
-> A senha `1q2w3e4R@` é usada somente no ambiente local deste trabalho. Não reutilize essa credencial em ambientes reais.
-
-## 1. Iniciar o SQL Server
-
-No PowerShell, execute:
-
-```powershell
-docker run -d `
-  --name sqlserver `
-  --rm `
-  -e "MSSQL_SA_PASSWORD=1q2w3e4R@" `
-  -e "ACCEPT_EULA=Y" `
-  -p 1433:1433 `
-  mcr.microsoft.com/mssql/server:latest
-```
-
-Confirme que o contêiner está em execução:
-
-```powershell
-docker ps
-```
-
-Acompanhe os logs até o SQL Server informar que está pronto para conexões:
-
-```powershell
-docker logs -f sqlserver
-```
-
-Use `Ctrl+C` para sair dos logs. O contêiner continuará em execução.
-
-Referência do comando: [acnaweb/database](https://github.com/acnaweb/database#sql-server).
-
-## 2. Criar o banco `api`
-
-A imagem do SQL Server cria o banco `master`, mas não cria automaticamente o banco `api`. Crie-o uma vez antes de iniciar a aplicação.
-
-Pelo próprio contêiner:
-
-```powershell
-docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd `
-  -S localhost -U sa -P "1q2w3e4R@" -C `
-  -Q "IF DB_ID('api') IS NULL CREATE DATABASE api"
-```
-
-Se a imagem utilizada ainda possuir o caminho antigo do `sqlcmd`, troque `/opt/mssql-tools18/bin/sqlcmd` por `/opt/mssql-tools/bin/sqlcmd`.
-
-Também é possível criar o banco no DBeaver. Conecte primeiro ao `master` e execute:
-
-```sql
-IF DB_ID('api') IS NULL
-    CREATE DATABASE api;
-```
-
-## 3. Testar a conexão no DBeaver
-
-Crie uma conexão do tipo **SQL Server** com os seguintes dados:
-
-| Campo | Valor |
-|---|---|
-| Host | `localhost` |
-| Porta | `1433` |
-| Database inicial | `master` |
-| Usuário | `sa` |
-| Senha | `1q2w3e4R@` |
-
-Depois de criar o banco, altere o campo Database para `api` ou abra uma nova conexão apontando para ele.
-
-Se o driver solicitar opções SSL no ambiente local, habilite `Trust server certificate` ou desabilite a criptografia somente para esse teste local.
-
-## 4. Profiles e conexão da aplicação
-
-As propriedades comuns ficam em `src/main/resources/application.properties`.
-
-### Profile `dev`
-
-O arquivo `application-dev.properties` usa valores locais padrão:
-
-| Variável | Padrão | Descrição |
-|---|---|---|
-| `DB_SERVER_URL` | `localhost` | Host do SQL Server |
-| `DB_SERVER_PORT` | `1433` | Porta do SQL Server |
-| `DB_NAME` | `api` | Nome do banco |
-| `DB_USER` | `sa` | Usuário do banco |
-| `DB_PWD` | `1q2w3e4R@` | Senha local temporária |
-| `DB_ENCRYPT` | `false` | Criptografia da conexão local |
-| `DB_TRUST_SERVER_CERTIFICATE` | `true` | Confia no certificado local |
-
-Nesse profile, `spring.jpa.hibernate.ddl-auto=update` permite ao Hibernate criar ou atualizar as tabelas.
-
-### Profile `prd`
-
-O arquivo `application-prd.properties` também usa SQL Server, mas não possui credenciais padrão e define `spring.jpa.hibernate.ddl-auto=none`.
-
-Portanto, em `prd`:
-
-- as variáveis `DB_SERVER_URL`, `DB_SERVER_PORT`, `DB_NAME`, `DB_USER` e `DB_PWD` são obrigatórias;
-- o banco e as tabelas devem existir antes da inicialização;
-- a aplicação não altera a estrutura do banco.
-
-O nome `prd` é válido: o Spring identifica o profile pelo sufixo de `application-prd.properties`.
-
-## 5. Executar a aplicação com o profile `dev`
-
-Na raiz do projeto, execute no PowerShell:
-
-```powershell
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
-```
-
-Como o profile possui valores locais padrão, não é necessário informar variáveis para o cenário descrito acima.
-
-Para sobrescrever uma configuração, defina a variável antes de iniciar a aplicação. Exemplo:
-
-```powershell
-$env:DB_PWD = "outra-senha"
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
-```
-
-A inicialização bem-sucedida apresenta `Started Application` no console.
-
-## 6. Confirmar a criação das tabelas
-
-No DBeaver, atualize o banco `api` e verifique as tabelas `financas` e `futebois`.
-
-Também é possível consultar:
-
-```sql
-USE api;
-
-SELECT TABLE_NAME
-FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_TYPE = 'BASE TABLE';
-```
-
-## Swagger/OpenAPI
-
-Com a aplicação em execução:
-
-- Swagger UI: [http://localhost:8080/](http://localhost:8080/)
-- OpenAPI JSON: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+As entidades usam IDs `BIGINT IDENTITY`, e os contratos HTTP usam DTOs separados para entrada e saída.
 
 ## Endpoints
 
-### Finanças — `/financas`
+Swagger UI local: [http://localhost:8080/](http://localhost:8080/)<br>
+OpenAPI JSON local: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
-| Método | Rota | Resposta esperada | Descrição |
-|---|---|---|---|
-| `POST` | `/financas` | `201 Created` | Cadastra uma finança |
-| `GET` | `/financas` | `200 OK` | Lista todas as finanças |
-| `GET` | `/financas/{id}` | `200 OK` ou `404 Not Found` | Busca uma finança |
-| `PUT` | `/financas/{id}` | `200 OK` ou `404 Not Found` | Atualiza uma finança |
-| `DELETE` | `/financas/{id}` | `204 No Content` ou `404 Not Found` | Remove uma finança |
+| Domínio | Operações | Rota-base |
+|---|---|---|
+| Finanças | `POST`, `GET`, `GET /{id}`, `PUT /{id}`, `DELETE /{id}` | `/api/v1/financas` |
+| Copa do Mundo | `POST`, `GET`, `GET /{id}`, `PUT /{id}`, `DELETE /{id}` | `/api/v1/copa` |
 
-Body de exemplo para `POST` e `PUT`:
+Exemplo de Finanças:
 
 ```json
 {
@@ -217,17 +50,7 @@ Body de exemplo para `POST` e `PUT`:
 }
 ```
 
-### Copa do Mundo — `/copa`
-
-| Método | Rota | Resposta esperada | Descrição |
-|---|---|---|---|
-| `POST` | `/copa` | `201 Created` | Cadastra uma edição da Copa |
-| `GET` | `/copa` | `200 OK` | Lista todas as edições |
-| `GET` | `/copa/{id}` | `200 OK` ou `404 Not Found` | Busca uma edição |
-| `PUT` | `/copa/{id}` | `200 OK` ou `404 Not Found` | Atualiza uma edição |
-| `DELETE` | `/copa/{id}` | `204 No Content` ou `404 Not Found` | Remove uma edição |
-
-Body de exemplo para `POST` e `PUT`:
+Exemplo de Copa do Mundo:
 
 ```json
 {
@@ -239,11 +62,95 @@ Body de exemplo para `POST` e `PUT`:
 }
 ```
 
-## Teste rápido do CRUD no PowerShell
+## Executar testes e gerar o pacote
 
-Com a API em execução, crie um registro:
+Os testes usam um banco H2 isolado; não exigem SQL Server ou Azure.
 
 ```powershell
+.\mvnw.cmd test
+.\mvnw.cmd clean package
+```
+
+O pacote executável é gerado em `target/app.jar`.
+
+## Executar localmente com SQL Server
+
+1. Copie `.env.example` para `.env` apenas como referência local. O Spring não carrega esse arquivo automaticamente.
+2. Defina uma senha forte no PowerShell, sem salvá-la no repositório.
+3. Inicie o SQL Server, crie o banco `api` e execute a aplicação.
+
+```powershell
+$env:DB_PWD = Read-Host "Senha local do SQL Server"
+
+docker run -d --name cp04-sqlserver --rm `
+  -e "ACCEPT_EULA=Y" `
+  -e "MSSQL_SA_PASSWORD=$env:DB_PWD" `
+  -p 1433:1433 `
+  mcr.microsoft.com/mssql/server:2022-latest
+
+docker exec cp04-sqlserver /opt/mssql-tools18/bin/sqlcmd `
+  -S localhost -U sa -P $env:DB_PWD -C `
+  -Q "IF DB_ID('api') IS NULL CREATE DATABASE api"
+
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
+```
+
+No profile `dev`, o Hibernate cria ou atualiza as tabelas. Se o caminho do `sqlcmd` não existir na imagem usada, tente `/opt/mssql-tools/bin/sqlcmd`.
+
+Variáveis disponíveis:
+
+| Variável | Desenvolvimento | Produção |
+|---|---|---|
+| `DB_SERVER_URL` | padrão `localhost` | obrigatória |
+| `DB_SERVER_PORT` | padrão `1433` | padrão `1433` |
+| `DB_SCHEMA` | padrão `api` | obrigatória; é o nome do banco |
+| `DB_USER` | padrão `sa` | obrigatória |
+| `DB_PWD` | obrigatória | obrigatória e armazenada como secret no Azure |
+| `SPRING_PROFILES_ACTIVE` | `dev` | `prd` |
+| `CORS_ALLOWED_ORIGIN_PATTERNS` | padrão `http://localhost:*` | definir para as origens permitidas |
+
+O profile `prd` usa conexão criptografada e valida o schema, sem criar tabelas. Execute [database/sqlserver-schema.sql](database/sqlserver-schema.sql) no Azure SQL antes de iniciar a aplicação.
+
+## Imagem Docker
+
+```powershell
+docker build -t cp-microservice:local .
+```
+
+Para executar a imagem, o SQL Server informado nas variáveis precisa estar acessível a partir do contêiner:
+
+```powershell
+docker run --rm -p 8080:8080 `
+  -e SPRING_PROFILES_ACTIVE=prd `
+  -e DB_SERVER_URL=<host-sql> `
+  -e DB_SERVER_PORT=1433 `
+  -e DB_SCHEMA=api `
+  -e DB_USER=<usuario> `
+  -e DB_PWD=<senha> `
+  cp-microservice:local
+```
+
+## Continuous Delivery
+
+O workflow [continuous_delivery.yml](.github/workflows/continuous_delivery.yml) roda em cada `push` na `main`:
+
+1. executa os testes;
+2. gera tags por número da execução e commit;
+3. constrói a imagem;
+4. publica no Docker Hub com tags imutáveis e `latest`.
+
+Antes do primeiro `push`, configure no repositório GitHub:
+
+- variável de Actions `DOCKER_USER`: seu usuário do Docker Hub;
+- secret de Actions `DOCKER_TOKEN`: token do Docker Hub com permissão de escrita;
+- repositório público no Docker Hub chamado `cp-microservice`.
+
+Nenhuma senha de banco ou token deve ser versionado.
+
+## Verificação rápida da API
+
+```powershell
+$baseUrl = "http://localhost:8080"
 $body = @{
   emissor = "Tesouro Nacional"
   taxa = 12.5
@@ -252,82 +159,20 @@ $body = @{
   quantidade = 10
 } | ConvertTo-Json
 
-$criada = Invoke-RestMethod `
-  -Method Post `
-  -Uri "http://localhost:8080/financas" `
+$criada = Invoke-RestMethod -Method Post `
+  -Uri "$baseUrl/api/v1/financas" `
   -ContentType "application/json" `
   -Body $body
 
-$criada
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/v1/financas/$($criada.id)"
+Invoke-RestMethod -Method Delete -Uri "$baseUrl/api/v1/financas/$($criada.id)"
 ```
 
-Consulte, atualize e exclua o registro:
+## Encerrar o ambiente local
 
 ```powershell
-Invoke-RestMethod -Method Get -Uri "http://localhost:8080/financas/$($criada.id)"
-
-$atualizacao = @{
-  emissor = "Tesouro Nacional"
-  taxa = 13.0
-  risco = "baixo"
-  vencimento = "2031-01-01"
-  quantidade = 12
-} | ConvertTo-Json
-
-Invoke-RestMethod `
-  -Method Put `
-  -Uri "http://localhost:8080/financas/$($criada.id)" `
-  -ContentType "application/json" `
-  -Body $atualizacao
-
-Invoke-RestMethod -Method Delete -Uri "http://localhost:8080/financas/$($criada.id)"
-Invoke-RestMethod -Method Get -Uri "http://localhost:8080/financas"
+docker stop cp04-sqlserver
+Remove-Item Env:DB_PWD
 ```
 
-Essas chamadas comprovam inserção, consulta, alteração e exclusão por meio da API e do SQL Server.
-
-## Build e testes
-
-Compilar sem iniciar a aplicação:
-
-```powershell
-.\mvnw.cmd compile
-```
-
-Executar os testes com o SQL Server e o banco `api` disponíveis:
-
-```powershell
-.\mvnw.cmd test "-Dspring.profiles.active=dev"
-```
-
-## Encerrar o ambiente
-
-Pare a aplicação com `Ctrl+C` e depois execute:
-
-```powershell
-docker stop sqlserver
-```
-
-Como o contêiner foi iniciado com `--rm`, ele será removido automaticamente. Os dados também serão perdidos; na próxima execução, será necessário recriar o banco `api`.
-
-## Solução de problemas
-
-### `docker` não é reconhecido
-
-Instale e inicie o Docker Desktop e abra um novo PowerShell para atualizar o PATH.
-
-### A aplicação não conecta ao SQL Server
-
-- confirme que `sqlserver` aparece em `docker ps`;
-- aguarde o SQL Server ficar pronto nos logs;
-- confirme se a porta `1433` está livre;
-- confirme que o banco `api` foi criado;
-- verifique se a senha do contêiner é a mesma de `DB_PWD`.
-
-### `Cannot open database "api" requested by the login`
-
-O SQL Server está acessível, mas o banco ainda não existe. Execute a etapa **Criar o banco `api`**.
-
-### A porta `8080` ou `1433` já está em uso
-
-Identifique o processo ou contêiner que ocupa a porta e encerre-o, ou altere o mapeamento/configuração antes de iniciar o ambiente.
+O contêiner local usa `--rm`; portanto, seus dados são descartados ao pará-lo.
